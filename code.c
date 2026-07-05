@@ -42,7 +42,8 @@ char *alloc(int n)
     }
 }
 
-void swap(char *v[], int i, int j) // v[]  the first character of the ith string
+void swap(char *v[], int i, int j) // *v[i]  the first character of the ith string
+                                   // *(v[i] + j) the jth character of the ith string
                                    // *v + i the ith pointer in the array
 {
     char *temp;
@@ -51,22 +52,23 @@ void swap(char *v[], int i, int j) // v[]  the first character of the ith string
     v[j] = temp;
 }
 
+//reads lines from input and stores them
 int readlines(char *lineptr[], int maxlines)
 {
-    int len, nlines;
+    int len, nlines; // nlines is the total count of lines successfully read and stored in lineptr
     char *p, line[MAXLEN];
     nlines = 0;
-    while ((len = getline(line, MAXLEN)) > 0)
+    while ((len = getline_p(line, MAXLEN)) > 0) // if len = 0 means getline reads EOF can refer back to getline function
     {
-        if (nlines >= maxlines || (p = alloc(len)) == NULL)
+        if (nlines >= maxlines || (p = alloc(len)) == NULL) // failure cases : too many lines OR alloc ran out of space
         {
             return -1 ;
         }
         else
         {
-             line[len-1] = '\0'; /* delete newline */
-            strcpy(p, line);
-            lineptr[nlines++] = p;
+            line[len-1] = '\0'; /* delete \n cuz basically input is a == "a" "\n" "\0" */
+            strcpy(p, line); // copy input line to pointer p
+            lineptr[nlines++] = p; // store the pointer to linepointer and increase the number of lines by 1
         }
     }
     return nlines;
@@ -82,13 +84,14 @@ int readlines(char *lineptr[], int maxlines)
     }
 }
 
-void qsort(char *v[], int left, int right)
+// qsort for string store string in alphabetical order
+void qsort(char *v[], int left, int right) // if have n lines left = 0 right = n
 {
     int i, last;
-    void swap(char *v[], int i, int j);
-    if (left >= right) /* do nothing if array contains */
+    void swap(char *v[], int i, int j); // declaration purpose
+    if (left >= right) /* do nothing if array contains fewer than two elements */
     {
-        return; /* fewer than two elements */
+        return;
     } 
     swap(v, left, (left + right)/2);
     last = left;
