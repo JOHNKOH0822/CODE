@@ -1,124 +1,35 @@
 #include <stdio.h>
-#include <string.h>
-#define MAXLINES 5000 /* max #lines to be sorted */
-#define MAXLEN 1000 /* max length of any input line */
-#define ALLOCSIZE 10000 
-char *lineptr[MAXLINES]; /* pointers to text lines */
-int readlines(char *lineptr[], int nlines);
-void writelines(char *lineptr[], int nlines);
-void qsort(char *lineptr[], int left, int right);
-int getline_p(char *line, int max);
-char *alloc(int);
+// 1 is leap 0 is non-leap
+static char daytab[2][13] = {
+    {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+    {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+};
 
-int getline_p(char *line, int max)
+/* day_of_year : set day of year from month & day */
+int day_of_year(int year, int month, int day)
 {
-    int i = 0, c;
-    while(-- max > 0 && (c = getchar()) != EOF && c != '\n')
+    int i, leap;
+    leap = year % 4 == 0 && year % 100 != 0 || year % 400 == 0; // leap = 1 (TRUE) if conditions are true
+    for(i = 1; i < month; i++)
     {
-        *line++ = c;
-        i++;
+        day += daytab[leap][i];
     }
-    if(c == '\n')
-    {
-        *line++ = c;
-        i++;
-    }
-    *line = '\0'; 
-    return i;
+    return day;
 }
 
-static char allocbuf[ALLOCSIZE]; 
-static char *allocp = allocbuf; 
-char *alloc(int n)
+/* month_day: set month, day from day of year */
+void month_day(int year, int yearday, int *pmonth, int *pday)
 {
-    if(allocbuf + ALLOCSIZE - allocp >= n) 
+    int i, leap;
+    leap = year%4 == 0 && year%100 != 0 || year%400 == 0;
+    for (i = 1; yearday > daytab[leap][i]; i++)
     {
-        allocp += n;
-        return allocp - n; 
+        yearday -= daytab[leap][i];
     }
-    else
-    {
-        return 0;
-    }
+    *pmonth = i; // how many times the loop runs → which month
+    *pday = yearday; // leftover after subtracting → which day of that month
 }
-
-void swap(char *v[], int i, int j) // *v[i]  the first character of the ith string
-                                   // *(v[i] + j) the jth character of the ith string
-                                   // *v + i the ith pointer in the array
-{
-    char *temp;
-    temp = v[i];
-    v[i] = v[j];
-    v[j] = temp;
-}
-
-//reads lines from input and stores them
-int readlines(char *lineptr[], int maxlines)
-{
-    int len, nlines; // nlines is the total count of lines successfully read and stored in lineptr
-    char *p, line[MAXLEN];
-    nlines = 0;
-    while ((len = getline_p(line, MAXLEN)) > 0) // if len = 0 means getline reads EOF can refer back to getline function
-    {
-        if (nlines >= maxlines || (p = alloc(len)) == NULL) // failure cases : too many lines OR alloc ran out of space
-        {
-            return -1 ;
-        }
-        else
-        {
-            line[len-1] = '\0'; /* delete \n cuz basically input is a == "a" "\n" "\0" */
-            strcpy(p, line); // copy input line to pointer p
-            lineptr[nlines++] = p; // store the pointer to linepointer and increase the number of lines by 1
-        }
-    }
-    return nlines;
-}
-
- /* writelines: write output lines */
- void writelines(char *lineptr[], int nlines)
-{
-    int i;
-    for (i = 0; i < nlines; i++)
-    {
-        printf("%s\n", lineptr[i]);
-    }
-}
-
-// qsort for string store string in alphabetical order
-void qsort(char *v[], int left, int right) // if have n lines left = 0 right = n
-{
-    int i, last;
-    void swap(char *v[], int i, int j); // declaration purpose
-    if (left >= right) /* do nothing if array contains fewer than two elements */
-    {
-        return;
-    } 
-    swap(v, left, (left + right)/2);
-    last = left;
-    for (i = left+1; i <= right; i++)
-    {
-        if (strcmp(v[i], v[left]) < 0)
-        {
-            swap(v, ++last, i);
-        }
-    }
-    swap(v, left, last);
-    qsort(v, left, last-1);
-    qsort(v, last+1, right);
-}
-
 int main()
 {
-    int nlines; /* number of input lines read */
-    if ((nlines = readlines(lineptr, MAXLINES)) >= 0) 
-    {
-        qsort(lineptr, 0, nlines-1);
-        writelines(lineptr, nlines);
-        return 0;
-    } 
-    else 
-    {
-        printf("error: input too big to sort\n");
-        return 1;
-    }
+
 }
