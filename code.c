@@ -1,100 +1,23 @@
 #include <stdio.h>
-// 1 is leap 0 is non-leap
-static char daytab[2][13] = {
-    {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
-    {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
-};
+// argc and argv are how your program receives input from the terminal when it starts.
+// if u type ./code hello world then u can pass it directly to the command
 
-/* day_of_year : set day of year from month & day */
-int day_of_year(int year, int month, int day)
+/* 1st version
+    int i;
+    for (i = 1; i < argc; i++)
+    {
+        printf("%s%s", argv[i], (i < argc-1) ? " " : ""); // print the command after ./code and the if loop is for spacing if is the last word no space needed
+    }
+    printf("\n");
+    return 0;
+*/
+int main(int argc, char *argv[])
 {
-    int i, leap;
-    leap = year % 4 == 0 && year % 100 != 0 || year % 400 == 0; // leap = 1 (TRUE) if conditions are true
-    if (month < 1 || month > 12 || day < 1 || day > daytab[leap][month] || year < 0)
+    while (--argc > 0) // check whether still got command pre-decrement to exclude ./code
     {
-        printf("Error : invalid date");
-        return -1;
+        printf("%s%s", *++argv, (argc > 1) ? " " : ""); // increase argv first then print argc
     }
-    else
-    {
-        for (i = 1; i < month; i++)
-        {
-            day += daytab[leap][i];
-        }
-        return day;
-    }
+    printf("\n");
+    return 0;
 }
 
-int day_of_year_p(int year, int month, int day)
-{
-    int i, leap;
-    leap = year % 4 == 0 && year % 100 != 0 || year % 400 == 0; // leap = 1 (TRUE) if conditions are true
-    if (month < 1 || month > 12 || day < 1 || day > *(*(daytab + leap) + month) || year < 0)
-    {
-        printf("Error : invalid date");
-        return -1;
-    }
-    else
-    {
-        for (i = 1; i < month; i++)
-        {
-            day += *(*(daytab + leap) + i);
-        }
-        return day;
-    }
-}
-
-/* month_day: set month, day from day of year */
-void month_day(int year, int yearday, int *pmonth, int *pday)
-{
-    int i, leap;
-    int total_yearday [2] = {365 , 366};
-    leap = year%4 == 0 && year%100 != 0 || year%400 == 0;
-    if (yearday < 1 || yearday > total_yearday[leap] || year < 1)
-    {
-        printf("Error : invalid year_day or year");
-    }
-    else
-    {
-        for (i = 1; yearday > daytab[leap][i]; i++)
-        {
-            yearday -= daytab[leap][i];
-        }
-        *pmonth = i; // how many times the loop runs → which month
-        *pday = yearday; // leftover after subtracting → which day of that month
-    } 
-}
-
-void month_day_p(int year, int yearday, int *pmonth, int *pday)
-{
-    int i, leap;
-    int total_yearday [2] = {365 , 366};
-    leap = year%4 == 0 && year%100 != 0 || year%400 == 0;
-    if (yearday < 1 || yearday > *(total_yearday + leap) || year < 1)
-    {
-        printf("Error : invalid year_day or year");
-    }
-    else
-    {
-        for (i = 1; yearday > *(*(daytab + leap) + i); i++)
-        {
-            yearday -= *(*(daytab + leap) + i);
-        }
-        *pmonth = i; // how many times the loop runs → which month
-        *pday = yearday; // leftover after subtracting → which day of that month
-    } 
-}
-
-/* month_name: return name of n-th month */
- char *month_name(int n)
-{
-    // without static, the array destroyed when it returns
-    // with static, the name[] lives entire program lifetime
-    static char *name[] = { "Illegal month", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
-    return (n < 1 || n > 12) ? name[0] : name[n];
-}
-
-int main()
-{
-
-}
