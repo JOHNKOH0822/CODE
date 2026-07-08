@@ -25,6 +25,25 @@ int day_of_year(int year, int month, int day)
     }
 }
 
+int day_of_year_p(int year, int month, int day)
+{
+    int i, leap;
+    leap = year % 4 == 0 && year % 100 != 0 || year % 400 == 0; // leap = 1 (TRUE) if conditions are true
+    if (month < 1 || month > 12 || day < 1 || day > *(*(daytab + leap) + month) || year < 0)
+    {
+        printf("Error : invalid date");
+        return -1;
+    }
+    else
+    {
+        for (i = 1; i < month; i++)
+        {
+            day += *(*(daytab + leap) + i);
+        }
+        return day;
+    }
+}
+
 /* month_day: set month, day from day of year */
 void month_day(int year, int yearday, int *pmonth, int *pday)
 {
@@ -45,6 +64,27 @@ void month_day(int year, int yearday, int *pmonth, int *pday)
         *pday = yearday; // leftover after subtracting → which day of that month
     } 
 }
+
+void month_day_p(int year, int yearday, int *pmonth, int *pday)
+{
+    int i, leap;
+    int total_yearday [2] = {365 , 366};
+    leap = year%4 == 0 && year%100 != 0 || year%400 == 0;
+    if (yearday < 1 || yearday > *(total_yearday + leap) || year < 1)
+    {
+        printf("Error : invalid year_day or year");
+    }
+    else
+    {
+        for (i = 1; yearday > *(*(daytab + leap) + i); i++)
+        {
+            yearday -= *(*(daytab + leap) + i);
+        }
+        *pmonth = i; // how many times the loop runs → which month
+        *pday = yearday; // leftover after subtracting → which day of that month
+    } 
+}
+
 /* month_name: return name of n-th month */
  char *month_name(int n)
 {
