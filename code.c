@@ -1,130 +1,135 @@
 #include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <math.h>
 #include <string.h>
-#define MAXLINE 1000
-
-
-// argc and argv are how your program receives input from the terminal when it starts.
-// if u type ./code hello world then u can pass it directly to the command
-
-/* 1st version
-    int i;
-    for (i = 1; i < argc; i++)
-    {
-        printf("%s%s", argv[i], (i < argc-1) ? " " : ""); // 1st %s for agrv[] next is for " " print the command after ./code and the if loop is for spacing if is the last word no space needed
-    }
-    printf("\n");
-    return 0;
-*/
-/*  2nd version
-    while (--argc > 0) // check whether still got command pre-decrement to exclude ./code
-    {
-        printf("%s%s", *++argv, (argc > 1) ? " " : ""); // increase argv first then print argc
-    }
-    printf("\n");
-    return 0;
-*/
-
-int getline (char *line, int max)
+#define TABSTOP 8
+void detab(int tabstops[], int ntabs)
 {
-    int i = 0, c;
-    while(-- max > 0 && (c = getchar()) != EOF && c != '\n')
+    int i, j, c, col, space;
+    col = 0;
+    while ((c = getchar()) != EOF)
     {
-        *line++ = c;
-        i++;
-    }
-    if(c == '\n')
-    {
-        *line++ = c;
-        i++;
-    }
-    *line = '\0'; 
-    return i;
-}
-/*
-strstr(s, t) — searches for string t inside string s. returns a pointer to where t first appears in s,
-or NULL if not found.
-strstr("hello world", "world")  // returns pointer to "world" in the string
-strstr("hello world", "xyz")    // returns NULL
-*/
-
-/*  1st version of spot pattern
-    char line[MAXLINE];
-    int found = 0;
-    if(argc != 2) // if print more than 2 or less than 2 cant find pattern
-    {
-        printf("Usage: find pattern\n");
-    }
-    else
-    {
-        while(getline(line, MAXLINE) > 0)
+        if (c == '\t')
         {
-            if(strstr(line, argv[1])!= NULL) // compare the input line with command argv ( pattern )
+            if (ntabs == 0) // if didnt type in tabstops so n = 0
             {
-                printf("%s", line);
-                found ++;
+                for (i = 0; i < 100; i++)
+                {
+                    tabstops[i] = (i + 1) * 8;
+                }
+                ntabs = 100; 
+            }
+
+            for(i = 0; i < ntabs ; i++)
+            {
+                if(tabstops[i] > col)
+                {
+                    space = tabstops[i] - col;
+                    for (j = 0; j < space; j++)
+                    {
+                        putchar(' ');
+                    }
+                    break;
+                }
+            }
+            col += space;
+        }
+        else if (c == '\n')
+        {
+            putchar('\n');
+            col = 0;
+        }
+        else
+        {
+            putchar(c);
+            col++;
+        }
+    }
+}
+
+void entab(int tabstops[], int ntabs)
+{
+    int i, j, c, col, space_count, space;
+    col = space_count = 0;
+
+    while ((c = getchar()) != EOF)
+    {
+        if (c == ' ')
+        {
+            space_count++;
+            col++;
+            if(col % TABSTOP == 0)
+            {
+                putchar('\t');
+                space_count = 0;
+            }
+        }
+        else if (c == '\t')
+        {
+            if (ntabs == 0) // if didnt type in tabstops so n = 0
+            {
+                for (i = 0; i < 100; i++)
+                {
+                    tabstops[i] = (i + 1) * 8;
+                }
+                ntabs = 100; 
+            }
+            for(i = 0; i < ntabs ; i++)
+            {
+                if(tabstops[i] > col)
+                {
+                    space = tabstops[i] - col; // space needed
+                    col = tabstops[i]; // set col to current tabstop cuz later we will add space
+                    space_count += space; // update space count for the while loop in else
+                    break;
+                }
+            }           
+        }
+        else
+        {
+            while (space_count > 0)
+            {
+                putchar(' ');
+                space_count--;
+            }
+            if (c == '\n')
+            {
+                putchar('\n');
+                col = 0;
+                space_count = 0;
+            }
+            else
+            {
+                putchar(c);
+                col++;
             }
         }
     }
-    return found;
-
-
-the outer while loop check the next argv is start with - or not  
-the inner while loop check the current argv[0] whether the char after - is x or n or invalid
-
-(*++argv)[0] see ++argv first so move to next argv move from argv[0] to [1] then * dereference last [0] check the first char o argv[1]
-
-*++argv[0] see argv[0] first current string then ++argv[0] move it to next char then * dereference
- 
-*/
+}
 int main(int argc, char *argv[])
 {
-    char line[MAXLINE];
-    long lineno = 0;
-    int c, except = 0, number = 0, found = 0;
-    while(--argc > 0 && (*++argv)[0] == '-') // --argv > 0 means still have arguements left and (*++argv)[0] == '-' means check next arguement is it start if - 
-    // (*++argv)[0] moves to the next argument and checks its first character
+    int tabstops[100];
+    int ntabs = 0;
+    int i, m , n;
+    while (--argc > 0)
     {
-        while(c = *++argv[0]) // moves inside the current argument string 
+        ++argv;
+        if ((*argv)[0] == '-')
+            m = atoi(*argv + 1);  // skip the '-', read the number
+        else if ((*argv)[0] == '+')
+            n = atoi(*argv + 1);  // skip the '+', read the number
+        else
+            tabstops[ntabs++] = atoi(*argv);  // regular tab stop
+    }
+    if(n > 0)
+    {
+        tabstops[ntabs++] = m;  // store starting point first
+        for(i = m; i < 100; ntabs++)
         {
-            switch(c)
-            {
-                case 'x':
-                    except = 1;
-                    break;
-                
-                case 'n':
-                    number = 1;
-                    break;
-                
-                default :
-                    printf("find: illegal option %c\n", c);
-                    argc = 0;
-                    found = -1;
-                    break;
-            }
+            tabstops[ntabs] = ( i += n );
         }
     }
-    if(argc != 1) // if not 1 means either no pattern or too many arguement
-    {
-        printf("Usage : find -x -n pattern\n");
-    }
-    else
-    {
-        while(getline(line, MAXLINE) > 0)
-        {
-            lineno++; // line number
-            if((strstr(line, *argv) != NULL) != except) // if match found, strstr(...) != NULL gives you 1 
-                                                        // except = 1 when -x reads so 1 != 1 is false so gives 0 then skip match input
-            {
-                if(number) // if number = 1
-                {
-                    printf("%ld:", lineno); // print the lineno
-                }
-                printf("%s", line);
-                found ++;
-            }
-        }
-    }
-    return found;
+    entab(tabstops, ntabs);
+    return 0;
 }
-
