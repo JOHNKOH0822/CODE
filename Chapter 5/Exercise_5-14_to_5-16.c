@@ -183,84 +183,6 @@ int strdir_casecmp(char *s1, char *s2)
     return tolower(*s1) - tolower(*s2);
 }
 
-
-/* Exercise 5-17 */
-#define MAXKEYS 10
-struct key {
-    int fieldnum;
-    int numeric;
-    int fold;
-    int directory;
-    int reverse;
-};
-
-struct key keys[MAXKEYS];
-int nkeys = 0;
-// fieldnum is for maybe Hi JKZE 0822 fieldnum = 2 means i want JKZE
-char *getfield(char *line, int fieldnum)
-{
-    while(*line == ' ' ||  *line == '\t') // skip leading space
-    {
-        line++;
-    }
-    while(--fieldnum > 0) // fieldnum - 1 > 0 now fieldnum = 2-1 > 0 
-    {
-        while(*line != ' ' && *line != '\t' && *line != '\0') // skip everything this is when running Hi
-        {
-            line++;
-        }
-        while(*line == ' ' || *line == '\t') // now pointer hit the space between Hi and JKZE so now skip 
-                                             // now the pointer hit JKZE so exit loop and 1 -1 > 0 false so pointer pointing JKZE now
-        {
-            line++;
-        }
-    }
-    return line;
-}
-
-/*Basically a cmp caller
-figures out which field to compare via getfield
-figures out which comparison function to call based on keys flags
-calls it and returns the result
-*/
-
-int linecmp(char *s1, char *s2)
-{
-    int i, result;
-    char *f1, *f2;
-
-    for(i = 0; i < nkeys; i++)
-    {
-        f1 = getfield(s1, keys[i].fieldnum);  
-        f2 = getfield(s2, keys[i].fieldnum);
-        if (keys[i].fold && keys[i].directory)
-        {
-            result = strdir_casecmp(f1, f2);
-        }
-        else if (keys[i].numeric)
-        {
-            result = numcmp(f1, f2);
-        }
-        else if (keys[i].fold)
-        {
-            result = strcasecmp_p(f1, f2);
-        }
-        else if (keys[i].directory)
-        {
-            result = strdircmp(f1, f2);
-        }
-        else
-        {
-            result = strcmp(f1, f2);
-        }
-        if(result != 0)
-        {
-            return keys[i].reverse ? -result : result;
-        }
-    }
-    return 0;
-}
-
 int main(int argc, char *argv[])
 {
     int nlines; /* number of input lines read */
@@ -268,7 +190,6 @@ int main(int argc, char *argv[])
     int reverse = 0;
     int fold = 0;
     int directory = 0;
-    int fieldnum = 0;
     while (--argc > 0)
     {
         ++argv;
@@ -276,49 +197,39 @@ int main(int argc, char *argv[])
         {
             if((*argv)[1] == 'n')
             {
-                keys[nkeys].numeric = 1;
+                numeric = 1;
             }
             else if((*argv)[1] == 'r')
             {
-                keys[nkeys].reverse = 1;
+                reverse = 1;
             }
             else if((*argv)[1] == 'f')
             {
-                keys[nkeys].fold = 1;
+                fold = 1;
             }
             else if((*argv)[1] == 'd')
             {
-                keys[nkeys].directory = 1;
+                directory = 1;
             }
-
-            if(argc > 1 && isdigit(argv[1][0]))
-            {
-                ++argv;
-                --argc;
-                fieldnum = atoi(*argv);
-            }
-            else
-            {
-                fieldnum = 1;
-            }
-            keys[nkeys].fieldnum = fieldnum;
-            nkeys++;  
         }
-    }
-    if (nkeys == 0)
-    {
-        keys[0].fieldnum = 1;
-        keys[0].numeric = 0;
-        keys[0].fold = 0;
-        keys[0].directory = 0;
-        keys[0].reverse = 0;
-        nkeys = 1;
     }
     if ((nlines = readlines(lineptr, MAXLINES)) >= 0) 
     {
         // comp can be numcmp or strcmp depends on the input
-        qsort_my((void**) lineptr, 0, nlines-1, (int(*)(void*,void*))linecmp);
-        writelines(lineptr, nlines);
+        qsort_my((void**) lineptr, 0, nlines-1,        
+        fold && directory ? (int(*)(void*,void*))strdir_casecmp :
+        numeric ? (int(*)(void*,void*))numcmp : // if numeric = 1
+        fold ? (int(*)(void*,void*))strcasecmp_p : // if fold = 1
+        directory ? (int(*)(void*,void*))strdircmp :
+        (int(*)(void*,void*))strcmp);
+        if(reverse == 1)
+        {
+            writelines_r(lineptr, nlines);
+        }
+        else 
+        {
+            writelines(lineptr, nlines);
+        }
         return 0;
     } 
     else 
@@ -326,4 +237,4 @@ int main(int argc, char *argv[])
         printf("input too big to sort\n");
         return 1;
     }
-}
+ }
