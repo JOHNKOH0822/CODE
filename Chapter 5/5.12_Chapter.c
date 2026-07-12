@@ -1,4 +1,38 @@
-// NOTE : I turn the entire dcl and undcl to functions and call them in main
+/*
+void *comp()
+ comp: function returning pointer to void
+void (*comp)()
+ comp: pointer to function returning void
+char (*(*x())[])()
+ x: function returning pointer to array[] of pointer to function returning char
+char (*(*x[3])())[5]
+ x: array[3] of pointer to function returning pointer to array[5] of char
+
+dcl — a full declarator, which is optional *  followed by a direct-dcl
+
+direct-dcl — the core part without leading * . can be:
+ a plain name like pf
+ a dcl in parentheses like (*pf)
+ a direct-dcl followed by () like pf()
+ a direct-dcl followed by [] like pf[]
+
+direct-dcl:
+        name
+        (dcl)
+        direct-dcl()
+        direct-dcl[optional size]
+*/
+
+/*
+input: "int *argv"
+         ↓
+datatype = "int"
+token = "*" → tokentype = '*'
+token = "argv" → tokentype = NAME → name = "argv"
+out = "pointer to"
+         ↓
+output: "argv: pointer to int"
+*/
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -9,10 +43,6 @@ void dirdcl(void);
 int gettoken(void);
 int getch(void);
 void ungetch(int);
-void dcl_program(void);  // the dcl main logic
-void undcl_program(void); // the undcl main logic
-/* Exercise 5-18 */
-void error_recover(void);
 int tokentype; /* stores what kind of token was last read. either NAME, PARENS, BRACKETS, or a single character like '(', '*', '\n'. */
 char token[MAXTOKEN]; /*  stores the actual text of the last token read  e.g. "argv" or "[13]" or "()"*/
 char name[MAXTOKEN]; /*  stores the identifier name found during parsing  e.g. "argv" or "pf"*/
@@ -37,38 +67,16 @@ int main()
     return 0;
 }
 
-void error_recover(void)
-{
-    while(tokentype != '\n' && tokentype != EOF)
-    {
-        gettoken();
-    }
-}
-
-
-void dcl_program(void)
-{
-    while(gettoken() != EOF) /* 1st token on line */
-    {
-        strcpy(datatype, token);  // save base type e.g "int" or "char"
-        out[0] = '\0'; // clear output string
-        dcl(); // parse the rest
-        if(tokentype != '\n') 
-        {
-            printf("syntax error");
-        }
-        printf("%s : %s %s\n", name , out, datatype);
-    }
-    return 0;
-}
-
-void undcl_program(void)
+/* undcl: convert word descriptions to declarations */
+//
+/*
+int main()
 {
     int type;
     char temp[MAXTOKEN];
     while(gettoken() != EOF)
     {
-        strcpy(out, token);
+        strcpy(out, token)
         while((type = gettoken()) != '\n')
         {
             if(type == PARENS || type == BRACKETS)
@@ -93,8 +101,10 @@ void undcl_program(void)
             }
         }
     }
-    return 0; 
+    return 0;
 }
+*/
+
 
 #define MAXVAL 100  
 #define BUFFSIZE 100 
@@ -176,7 +186,6 @@ void dirdcl(void)
         if (tokentype != ')')
         {
             printf("error: missing )\n");
-            error_recover();
         }
     } 
     else if (tokentype == NAME) /* variable name */
@@ -186,7 +195,6 @@ void dirdcl(void)
     else
     {
         printf("error: expected name or (dcl)\n");
-        error_recover();
     }
     while ((type=gettoken()) == PARENS || type == BRACKETS)
     {
