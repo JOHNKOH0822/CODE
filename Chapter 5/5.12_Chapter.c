@@ -76,7 +76,7 @@ int main()
     char temp[MAXTOKEN];
     while(gettoken() != EOF)
     {
-        strcpy(out, token)
+        strcpy(out, token);
         while((type = gettoken()) != '\n')
         {
             if(type == PARENS || type == BRACKETS)
