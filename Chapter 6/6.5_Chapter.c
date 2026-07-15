@@ -27,42 +27,32 @@ void ungetch(int c)
     }
 }
 
+/* getword: get next word or character from input */
 int getword(char *word, int lim)
 {
     int c, getch(void);
     void ungetch(int);
     char *w = word;
 
-    while(isspace(c =getch()))
+    while (isspace(c = getch()))
+        ;
+    if (c != EOF)
+        *w++ = c;
+
+    
+    if (!isalpha(c)) 
     {
-        ; 
+        *w = '\0';
+        return c;
     }
-    /*\
-    getword returns word[0] which is the first character of the word — but EOF is -1. 
-    when the loop ends naturally, getword returns word[0] which could be '\0' (zero) not -1, 
-    so != EOF is always true and the loop never exits properly.
-    So need to end it
-    */
-    if(c == EOF)   
-        return EOF;
-    if(c != EOF)
-    {
-        *w++ = c; // store c first 
-    }
-    if(!isalpha(c)) // check the first char is alphabet 
-    {
-        *w = '\0'; // if is not alphabet immediately null terminate
-    }
-    for( ; --lim > 0; w++) // start at second slot cuz first slot have c already
-    {
-        if(!isalnum(*w = getch()))
-        {
+    for ( ; --lim > 0; w++) {
+        if (!isalnum(*w = getch())) {
             ungetch(*w);
             break;
         }
     }
-    *w = '\0'; // if for loop breaks or word too long null terminates
-    return word[0]; // return the first char of whatever was read
+    *w = '\0';
+    return word[0];
 }
 
 struct tnode {              /* the tree node: */

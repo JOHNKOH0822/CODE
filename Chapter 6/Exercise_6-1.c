@@ -98,28 +98,22 @@ int getword(char *word, int lim)
     void ungetch(int);
     char *w = word;
 
-    while(isspace(c =getch()))
-    {
-        ; 
+    while (isspace(c = getch()))
+        ;
+    if (c != EOF)
+        *w++ = c;
+    if (!isalpha(c)) {
+        *w = '\0';
+        return c;
     }
-    if(c != EOF)
-    {
-        *w++ = c; // store c first 
-    }
-    if(!isalpha(c)) // check the first char is alphabet 
-    {
-        *w = '\0'; // if is not alphabet immediately null terminate
-    }
-    for( ; --lim > 0; w++) // start at second slot cuz first slot have c already
-    {
-        if(!isalnum(*w = getch()))
-        {
+    for ( ; --lim > 0; w++) {
+        if (!isalnum(*w = getch())) {
             ungetch(*w);
             break;
         }
     }
-    *w = '\0'; // if for loop breaks or word too long null terminates
-    return word[0]; // return the first char of whatever was read
+    *w = '\0';
+    return word[0];
 }
 
 // getword_mod Exercise 6-1
